@@ -27,7 +27,6 @@ class FBPCONVNet(nn.Module):
         result = self.block_3_2(torch.cat((block_3_1_output, result), dim=1))
         result = self.block_2_2(torch.cat((block_2_1_output, result), dim=1))
         result = self.block_1_2(torch.cat((block_1_1_output, result), dim=1))
-        result = result + input
         return result
 
     def create_model(self):
@@ -113,12 +112,14 @@ class FBPCONVNet(nn.Module):
 
         # block_1_2
         block_1_2 = []
-        block_1_2.extend(self.add_block_conv(in_channels=128, out_channels=64, kernel_size=kernel_size, stride=1,
+        block_1_2.extend(
+            self.add_block_conv_transpose(in_channels=128, out_channels=64, kernel_size=kernel_size, stride=2,
+                                          padding=padding, output_padding=1, batchOn=True, ReluOn=True))
+        block_1_2.extend(
+            self.add_block_conv_transpose(in_channels=64, out_channels=64, kernel_size=kernel_size, stride=2,
+                                          padding=padding, output_padding=1, batchOn=True, ReluOn=True))
+        block_1_2.extend(self.add_block_conv(in_channels=64, out_channels=1, kernel_size=kernel_size, stride=1,
                                              padding=padding, batchOn=True, ReluOn=True))
-        block_1_2.extend(self.add_block_conv(in_channels=64, out_channels=64, kernel_size=kernel_size, stride=1,
-                                             padding=padding, batchOn=True, ReluOn=True))
-        block_1_2.extend(self.add_block_conv(in_channels=64, out_channels=1, kernel_size=1, stride=1,
-                                             padding=0, batchOn=False, ReluOn=False))
         self.block_1_2 = nn.Sequential(*block_1_2)
 
     @staticmethod
