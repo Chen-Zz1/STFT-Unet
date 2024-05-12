@@ -8,6 +8,7 @@ import math
 import argparse
 import os
 from utils import load_data, load_checkpoint, cmap_convert
+import pickle
 
 # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -72,6 +73,7 @@ def main(config):
     criterion = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(fbp_conv_net.parameters(), lr=0.0001)
     epoch_start = 0
+    losses = []
 
     # load check_point
     if os.path.exists(config.checkpoint_dir) and len(os.listdir(config.checkpoint_dir)) > 0:
@@ -92,7 +94,7 @@ def main(config):
                 tag_image = Image.open(tag_image_path)
                 ipt_image = Image.open(ipt_image_path)
 
-                tag_image, ipt_image = random_flip(tag_image, ipt_image)
+                # tag_image, ipt_image = random_flip(tag_image, ipt_image)
 
                 tag_batch_images.append(transform(tag_image).to(device))
                 ipt_batch_images.append(transform(ipt_image).to(device))
@@ -121,6 +123,7 @@ def main(config):
 
             # Compute and print loss
             loss = criterion(y_pred, tag_batch_images)
+            losses.append(loss.item())
             if i % los_step == 0:
                 print('loss (epoch-%d-iteration-%d) : %f' % (e+1, i+1, loss.item()))
 
@@ -131,6 +134,9 @@ def main(config):
 
             # Update the parameters
             optimizer.step()
+
+        with open('losses.pkl', 'wb') as f:
+            pickle.dump(losses, f)
 
         # shuffle data
         # ind = np.random.permutation(noisy.shape[0])

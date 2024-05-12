@@ -1,3 +1,5 @@
 testimg/
+tmp/
 samples/
 checkpoints/
+__pycache__/
